@@ -43,7 +43,7 @@ def update_custom_status(
         }
     }
     print(
-        f"Setting discord custom status text: '{custom_status_text}' expiring at: '{custom_status_expiry}"
+        f"Setting discord custom status text: '{custom_status_text}' expiring at: {custom_status_expiry}"
     )
     resp = session.patch(UPDATE_STATUS_URL, json=custom_status_payload)
     resp.raise_for_status()
