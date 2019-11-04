@@ -3,10 +3,13 @@
 
 """Update your Discord custom status"""
 
+import argparse
 import uuid
+from time import sleep
 
 from requests import Session
 import datetime
+import traceback
 
 
 def gen_cfduid() -> str:
@@ -16,6 +19,8 @@ def gen_cfduid() -> str:
 
 UPDATE_STATUS_URL = "https://discordapp.com/api/v6/users/@me/settings"
 DEFAULT_DISCORD_USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.305 Chrome/69.0.3497.128 Electron/4.0.8 Safari/537.36"
+
+MAX_STATUS_LENGTH: int = 128
 
 
 def update_custom_status(
@@ -50,10 +55,45 @@ def update_custom_status(
     assert resp.json()["custom_status"]["text"] == custom_status_text
 
 
+def chunk_string(string: str, length: int):
+    return (string[0 + i : length + i].strip() for i in range(0, len(string), length))
+
+
+def get_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-s",
+        "--status-text",
+        dest="status_text",
+        required=True,
+        help="Custom status text to iterate through.",
+    )
+    parser.add_argument(
+        "-tf",
+        "--token-file",
+        dest="token_file",
+        required=True,
+        help="Path to file containing the Discord authorization token.",
+    )
+    return parser
+
+
 def main():
-    with open("token_me.txt", "r") as f:
+    args = get_parser().parse_args()
+    with open(args.token_file, "r") as f:
         token = f.read().strip()
-    update_custom_status(token, "hello")
+    for chunk in chunk_string(args.status_text, MAX_STATUS_LENGTH):
+        try:
+            update_custom_status(
+                authorization=token,
+                custom_status_text=chunk,
+                custom_status_expiry=datetime.datetime.utcnow()
+                + datetime.timedelta(minutes=10),
+            )
+            sleep(60 * 10)
+        except Exception:
+            print(f"Failed update status with chunk {chunk}")
+            traceback.print_exc()
 
 
 if __name__ == "__main__":
