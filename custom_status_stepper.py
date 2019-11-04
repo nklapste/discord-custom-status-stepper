@@ -56,7 +56,7 @@ def update_custom_status(
 
 
 def chunk_string(string: str, length: int):
-    return (string[0 + i : length + i].strip() for i in range(0, len(string), length))
+    return (string[i : length + i].strip() for i in range(0, len(string), length))
 
 
 def get_parser() -> argparse.ArgumentParser:
