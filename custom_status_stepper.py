@@ -8,6 +8,7 @@ import datetime
 import uuid
 import traceback
 from time import sleep
+from typing import Generator
 
 import requests
 
@@ -54,7 +55,7 @@ def update_custom_status(
     assert resp.json()["custom_status"]["text"] == custom_status_text
 
 
-def chunk_string(string: str, length: int):
+def chunk_string(string: str, length: int) -> Generator[str, None, None]:
     return (string[i : length + i].strip() for i in range(0, len(string), length))
 
 
