@@ -4,12 +4,12 @@
 """Update your Discord custom status"""
 
 import argparse
+import datetime
 import uuid
+import traceback
 from time import sleep
 
 import requests
-import datetime
-import traceback
 
 
 def gen_cfduid() -> str:
