@@ -7,7 +7,7 @@ import argparse
 import uuid
 from time import sleep
 
-from requests import Session
+import requests
 import datetime
 import traceback
 
@@ -30,14 +30,6 @@ def update_custom_status(
     + datetime.timedelta(hours=4),
 ):
     """Update the Discord custom status tied to the given authorization"""
-    session = Session()
-    session.headers.update(
-        {
-            "user-agent": DEFAULT_DISCORD_USER_AGENT,
-            "authorization": authorization,
-            "cookie": f"__cfduid={gen_cfduid()}",
-        }
-    )
     custom_status_expiry = (
         custom_status_expiry.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
     )
@@ -50,7 +42,15 @@ def update_custom_status(
     print(
         f"Setting discord custom status text: '{custom_status_text}' expiring at: {custom_status_expiry}"
     )
-    resp = session.patch(UPDATE_STATUS_URL, json=custom_status_payload)
+    resp = requests.patch(
+        UPDATE_STATUS_URL,
+        json=custom_status_payload,
+        headers={
+            "user-agent": DEFAULT_DISCORD_USER_AGENT,
+            "authorization": authorization,
+            "cookie": f"__cfduid={gen_cfduid()}",
+        },
+    )
     resp.raise_for_status()
     assert resp.json()["custom_status"]["text"] == custom_status_text
 
