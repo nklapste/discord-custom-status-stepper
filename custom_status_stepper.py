@@ -26,8 +26,7 @@ MAX_STATUS_LENGTH: int = 128
 def update_custom_status(
     authorization: str,
     custom_status_text: str,
-    custom_status_expiry: datetime.datetime = datetime.datetime.utcnow()
-    + datetime.timedelta(hours=4),
+    custom_status_expiry: datetime.datetime,
 ):
     """Update the Discord custom status tied to the given authorization"""
     custom_status_expiry = (
