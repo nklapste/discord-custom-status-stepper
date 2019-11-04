@@ -17,7 +17,7 @@ def gen_cfduid() -> str:
     return str(uuid.uuid4().hex) + str(uuid.uuid4().hex)[0:43]
 
 
-UPDATE_STATUS_URL = "https://discordapp.com/api/v6/users/@me/settings"
+UPDATE_STATUS_URL: str = "https://discordapp.com/api/v6/users/@me/settings"
 DEFAULT_DISCORD_USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.305 Chrome/69.0.3497.128 Electron/4.0.8 Safari/537.36"
 
 MAX_STATUS_LENGTH: int = 128
