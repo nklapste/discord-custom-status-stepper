@@ -6,7 +6,6 @@
 import argparse
 import datetime
 import uuid
-import traceback
 from time import sleep
 from typing import Generator
 
@@ -60,20 +59,54 @@ def chunk_string(string: str, length: int) -> Generator[str, None, None]:
 
 
 def get_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "-s",
-        "--status-text",
-        dest="status_text",
-        required=True,
-        help="Custom status text to iterate through.",
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
         "-tf",
         "--token-file",
         dest="token_file",
-        required=True,
         help="Path to file containing the Discord authorization token.",
+    )
+
+    status_text_group = parser.add_argument_group().add_mutually_exclusive_group(
+        required=True
+    )
+    status_text_group.add_argument(
+        "-st",
+        "--status-text",
+        dest="status_text",
+        help="Custom status text to iterate through.",
+    )
+    status_text_group.add_argument(
+        "-stf",
+        "--status-text-file",
+        dest="status_text_file",
+        help="Path to file containing the status text to iterate through.",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--chunk-length",
+        dest="chunk_length",
+        type=int,
+        default=MAX_STATUS_LENGTH,
+        help=f"Length to chunk long custom status text too (min: 1 maximum: {MAX_STATUS_LENGTH}).",
+    )
+    parser.add_argument(
+        "-t",
+        "--iter-time",
+        dest="iter_time",
+        default=60 * 10,
+        type=float,
+        help="Time (in seconds) to wait between iterating through custom status text.",
+    )
+    parser.add_argument(
+        "-l",
+        "--loop",
+        dest="loop",
+        action="store_true",
+        help="Enable iterating through the custom status text infinitely.",
     )
     return parser
 
@@ -82,18 +115,24 @@ def main():
     args = get_parser().parse_args()
     with open(args.token_file, "r") as f:
         token = f.read().strip()
-    for chunk in chunk_string(args.status_text, MAX_STATUS_LENGTH):
-        try:
+
+    if args.status_text_file:
+        with open(args.status_text_file, "r") as f:
+            status_text = f.read()
+    else:
+        status_text = args.status_text
+
+    while True:
+        for chunk in chunk_string(status_text, args.chunk_length):
             update_custom_status(
                 authorization=token,
                 custom_status_text=chunk,
                 custom_status_expiry=datetime.datetime.utcnow()
-                + datetime.timedelta(minutes=10),
+                + datetime.timedelta(seconds=args.iter_time),
             )
-            sleep(60 * 10)
-        except Exception:
-            print(f"Failed update status with chunk {chunk}")
-            traceback.print_exc()
+            sleep(args.iter_time)
+        if not args.loop:
+            break
 
 
 if __name__ == "__main__":
